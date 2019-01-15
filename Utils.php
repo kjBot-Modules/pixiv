@@ -15,14 +15,13 @@ class Utils{
 
     public static function GetIllustInfoByID($iID){
         $web = file_get_contents('https://www.pixiv.net/member_illust.php?mode=medium&illust_id='.$iID, false, stream_context_create(static::$pixivCookieHeader));
-        if($web===false)leave('无法打开 Pixiv');
+        if($web===false)q('无法打开 Pixiv');
     
         if(!preg_match('/illust:\s?\{\s?'.$iID.':\s?({[\S\s]*}\})/', $web, $result)){
-            leave('没有这张插画');
+            q('没有这张插画');
         }
     
         $pixiv = json_decode($result[1]);
-        setData('test.txt', var_export($pixiv, true));
         return $pixiv;
     }
     
