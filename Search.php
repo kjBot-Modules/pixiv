@@ -4,11 +4,14 @@ namespace kjBotModule\kj415j45\pixiv;
 use kjBot\Framework\Module;
 use kjBot\Framework\Message;
 use kjBot\Framework\Event\MessageEvent;
+use kjBot\Framework\DataStorage;
 
 class Search extends Module{
     public function process(array $args, MessageEvent $event): Message
     {
         $index = 1;
+        $page = 1;
+        $word = '';
         do{
             $arg = $args[$index++];
             switch($arg){
@@ -31,12 +34,12 @@ class Search extends Module{
 
         if($event->fromGroup())$mode = 'safe';
         $webStr = 'https://www.pixiv.net/search.php?type=illust'
-            .'&p='.@$page
-            .'&mode='.strtolower(@$mode)
-            .'&word='.$word??q('请提供关键词')
+            .'&p='.($page??q('请提供页码'))
+            .'&mode='.strtolower($mode)
+            .'&word='.($word??q('请提供关键词'))
         ;
 
-        Utils::Init(\Config('pixivSession'));
+        Utils::Init(\Config('pixivCookie'));
 
         $web = file_get_contents($webStr, false, stream_context_create(Utils::$pixivCookieHeader));
         if($web===false)q('无法打开 Pixiv');
@@ -45,17 +48,15 @@ class Search extends Module{
         preg_match('/<span class="count-badge">(\d+)件/', $web, $count);
 
         $json = html_entity_decode($match[1]);
-        
         if($json == '[]' || $json == '')q('没有结果');
-        
         $result = json_decode($json);
-        
+
         if(isset($target) && 1<=$target && $target<=count($result)){
             $index = $target-1;
         }else{
             $index = rand(0, count($result)-1);
         }
-        
+
         $pixiv = $result[$index++];
         $pixiv = Utils::GetIllustInfoByID($pixiv->illustId);
         $tags = Utils::GetIllustTagsFromPixivJSON($pixiv);

@@ -8,7 +8,7 @@ class Utils{
     public static function Init($cookie = NULL){
         static::$pixivCookieHeader = [
             "http" => [
-                "header" => 'cookie: '.\Config('pixivCookie')."\n"
+                "header" => 'cookie: '.$cookie??\Config('pixivCookie')."\n"
             ]
         ];
     }
