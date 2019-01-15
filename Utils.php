@@ -17,7 +17,7 @@ class Utils{
         $web = file_get_contents('https://www.pixiv.net/member_illust.php?mode=medium&illust_id='.$iID, false, stream_context_create(static::$pixivCookieHeader));
         if($web===false)q('无法打开 Pixiv');
     
-        if(!preg_match('/illust:\s?\{\s?'.$iID.':\s?({[\S\s]*}\})/', $web, $result)){
+        if(!preg_match('/illust:\s?\{\s?'.$iID.':\s?(\{[\S\s]*\}\}\}) /', $web, $result)){
             q('没有这张插画');
         }
     
