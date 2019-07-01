@@ -38,7 +38,7 @@ class Search extends Module{
         $webStr = 'https://www.pixiv.net/search.php?type=illust'
             .'&p='.($page??q('请提供页码'))
             .'&mode='.strtolower($mode)
-            .'&word='.((0===strlen($word)?q('请提供关键词'):$word)
+            .'&word='.((0===strlen($word))?q('请提供关键词'):$word)
         ;
 
         Utils::Init(\Config('pixivCookie'));
