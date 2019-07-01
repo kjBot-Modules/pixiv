@@ -28,15 +28,17 @@ class Search extends Module{
                     $word.= $args[$index++].urlencode('users入り ');
                     break;
                 default:
-                    $word.= $arg??'';
+                    $word.= ($arg.' ');
             }
         }while($arg!==NULL);
+        
+        $word = trim($word);
 
         if($event->fromGroup())$mode = 'safe';
         $webStr = 'https://www.pixiv.net/search.php?type=illust'
             .'&p='.($page??q('请提供页码'))
             .'&mode='.strtolower($mode)
-            .'&word='.($word??q('请提供关键词'))
+            .'&word='.((0===strlen($word)?q('请提供关键词'):$word)
         ;
 
         Utils::Init(\Config('pixivCookie'));
