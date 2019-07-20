@@ -25,7 +25,7 @@ class Search extends Module{
                     $mode = $args[$index++];
                     break;
                 case '-like':
-                    $word.= $args[$index++].urlencode('users入り ');
+                    $word.= $args[$index++].'users入り ';
                     break;
                 default:
                     $word.= ($arg.' ');
