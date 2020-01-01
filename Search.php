@@ -35,6 +35,7 @@ class Search extends Module{
         $word = trim($word);
 
         if($event->fromGroup())$mode = 'safe';
+        //ajax接口对空格只接受%20而不接受+，故采用rawurlencode()
         $webStr = 'https://www.pixiv.net/ajax/search/artworks/'
             .((0===strlen($word))?q('请提供关键词'):rawurlencode($word)).'?order=date_d&s_mode=s_tag&type=all&word='.rawurlencode($word) //s_mode设定为标签模糊搜索
             .'&p='.(int)($page??q('请提供页码'))
@@ -52,12 +53,17 @@ class Search extends Module{
         $total = $illustManga->total;
         
         $data = $illustManga->data;
-        
+        $pendingData1 = $result->body->popular->recent;
+        $pendingData2 = $result->body->popular->permanent;
+
+        //随机时不包含私货数据
         if(isset($target) && 1<=$target && $target<=count($data)){
             $index = $target-1;
         }else{
             $index = rand(0, count($data)-1);
         }
+
+        $pixiv = array_merge($data, $pendingData1, $pendingData2);
 
         $pixiv = $data[$index++];
         $pixiv = Utils::GetIllustInfoByID($pixiv->illustId);
