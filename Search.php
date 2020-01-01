@@ -69,7 +69,8 @@ class Search extends Module{
             $pendingTotal = count($pixiv) - count($data);
             $indexText = "这是热门作品中的 {$_index}/{$pendingTotal}";
         }else{
-            $indexText = "这是第 {$page} 页第 {$index} 幅";
+            $_index = $index+1;
+            $indexText = "这是第 {$page} 页第 {$_index} 幅";
         }
 
         $pixiv = $pixiv[$index++];
