@@ -35,36 +35,37 @@ class Search extends Module{
         $word = trim($word);
 
         if($event->fromGroup())$mode = 'safe';
-        $webStr = 'https://www.pixiv.net/search.php?type=illust'
+        $webStr = 'https://www.pixiv.net/ajax/search/artworks/'
+            .((0===strlen($word))?q('请提供关键词'):urlencode($word)).'?order=date_d&s_mode=s_tag&type=all&word='.urlencode($word) //s_mode设定为标签模糊搜索
             .'&p='.(int)($page??q('请提供页码'))
             .'&mode='.strtolower($mode)
-            .'&word='.((0===strlen($word))?q('请提供关键词'):urlencode($word))
         ;
 
         Utils::Init(\Config('pixivCookie'));
 
-        $web = file_get_contents($webStr, false, stream_context_create(Utils::$pixivCookieHeader));
-        if($web===false)q('无法打开 Pixiv');
+        $json = file_get_contents($webStr, false, stream_context_create(Utils::$pixivCookieHeader));
+        if($json===false)q('无法打开 Pixiv');
 
-        preg_match('/data-items="([^"]*)"/', $web, $match);
-        preg_match('/<span class="count-badge">(\d+)件/', $web, $count);
-
-        $json = html_entity_decode($match[1]);
-        if($json == '[]' || $json == '')q('没有结果');
         $result = json_decode($json);
-
-        if(isset($target) && 1<=$target && $target<=count($result)){
+        $illustManga = $result->body->illustManga;
+        $total = 0;
+        if($illustManga->total === 0) q('没有结果');
+        else $total = $illustManga->total;
+        
+        $data = $illustManga->data;
+        
+        if(isset($target) && 1<=$target && $target<=count($data)){
             $index = $target-1;
         }else{
-            $index = rand(0, count($result)-1);
+            $index = rand(0, count($data)-1);
         }
 
-        $pixiv = $result[$index++];
+        $pixiv = $data[$index++];
         $pixiv = Utils::GetIllustInfoByID($pixiv->illustId);
         $tags = Utils::GetIllustTagsFromPixivJSON($pixiv);
         $pixiv->illustComment = strip_tags(str_replace('<br />', "\n", $pixiv->illustComment));
         $msg=<<<EOT
-该关键字共有 {$count[1]} 幅作品，这是第 {$page} 页第 {$index} 幅
+该关键字共有 {$total} 幅作品，这是第 {$page} 页第 {$index} 幅
 插画ID：{$pixiv->illustId} 共 {$pixiv->pageCount} P
 画师ID：{$pixiv->userId}
 标签：{$tags}
