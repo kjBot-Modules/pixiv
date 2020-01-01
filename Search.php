@@ -56,16 +56,16 @@ class Search extends Module{
         $pendingData1 = $result->body->popular->recent;
         $pendingData2 = $result->body->popular->permanent;
 
+        $pixiv = array_merge($data, $pendingData1, $pendingData2);
+
         //随机时不包含私货数据
-        if(isset($target) && 1<=$target && $target<=count($data)){
+        if(isset($target) && 1<=$target && $target<=count($pixiv)){
             $index = $target-1;
         }else{
             $index = rand(0, count($data)-1);
         }
 
-        $pixiv = array_merge($data, $pendingData1, $pendingData2);
-
-        $pixiv = $data[$index++];
+        $pixiv = $pixiv[$index++];
         $pixiv = Utils::GetIllustInfoByID($pixiv->illustId);
         $tags = Utils::GetIllustTagsFromPixivJSON($pixiv);
         $pixiv->illustComment = strip_tags(str_replace('<br />', "\n", $pixiv->illustComment));
