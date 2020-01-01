@@ -64,7 +64,7 @@ class Search extends Module{
         }else{
             $index = rand(0, count($data)-1);
         }
-        if($index > count($data)){
+        if($index+1 > count($data)){
             $_index = $index - count($data)+1;
             $pendingTotal = count($pixiv) - count($data);
             $indexText = "这是热门作品中的 {$_index}/{$pendingTotal}";
