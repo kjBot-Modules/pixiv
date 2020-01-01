@@ -61,8 +61,16 @@ class Search extends Module{
         //随机时不包含私货数据
         if(isset($target) && 1<=$target && $target<=count($pixiv)){
             $index = $target-1;
+            
         }else{
             $index = rand(0, count($data)-1);
+        }
+        if($index > count($data)){
+            $_index = $index - count($data);
+            $pendingTotal = count($pendingData1) + count($pendingData1);
+            $indexText = "这是热门作品中的 {$_index}/{$pendingTotal}";
+        }else{
+            $indexText = "这是第 {$page} 页第 {$index} 幅";
         }
 
         $pixiv = $pixiv[$index++];
@@ -70,7 +78,7 @@ class Search extends Module{
         $tags = Utils::GetIllustTagsFromPixivJSON($pixiv);
         $pixiv->illustComment = strip_tags(str_replace('<br />', "\n", $pixiv->illustComment));
         $msg=<<<EOT
-该关键字共有 {$total} 幅作品，这是第 {$page} 页第 {$index} 幅
+该关键字共有 {$total} 幅作品，{$indexText}
 插画ID：{$pixiv->illustId} 共 {$pixiv->pageCount} P
 画师ID：{$pixiv->userId}
 标签：{$tags}
