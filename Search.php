@@ -36,7 +36,7 @@ class Search extends Module{
 
         if($event->fromGroup())$mode = 'safe';
         $webStr = 'https://www.pixiv.net/ajax/search/artworks/'
-            .((0===strlen($word))?q('请提供关键词'):urlencode($word)).'?order=date_d&s_mode=s_tag&type=all&word='.urlencode($word) //s_mode设定为标签模糊搜索
+            .((0===strlen($word))?q('请提供关键词'):rawurlencode($word)).'?order=date_d&s_mode=s_tag&type=all&word='.rawurlencode($word) //s_mode设定为标签模糊搜索
             .'&p='.(int)($page??q('请提供页码'))
             .'&mode='.strtolower($mode)
         ;
@@ -48,9 +48,8 @@ class Search extends Module{
 
         $result = json_decode($json);
         $illustManga = $result->body->illustManga;
-        $total = 0;
         if($illustManga->total === 0) q('没有结果');
-        else $total = $illustManga->total;
+        $total = $illustManga->total;
         
         $data = $illustManga->data;
         
