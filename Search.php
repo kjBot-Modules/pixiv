@@ -91,9 +91,9 @@ class Search extends Module{
 {$pixiv->illustComment}
 [CQ:image,file={$pixiv->urls->regular}]
 EOT;
-        Access::Log($this, $event, "Result: {$pixiv->illustId}, Using keywords: {$word}");
+        Access::Log($this, $event, "Result: {$pixiv->illustId}, Keywords: {$word}");
         $user = $event->getId();
-        Access::LogForMe($this, "User: {$user}, Result: {$pixiv->illustId}, Using keywords: {$word}");
+        Access::LogForMe($this, "User: {$user}, Result: {$pixiv->illustId}, Keywords: {$word}");
         return $event->sendBack($msg);
     }
 }
