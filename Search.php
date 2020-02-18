@@ -4,11 +4,14 @@ namespace kjBotModule\kj415j45\pixiv;
 use kjBot\Framework\Module;
 use kjBot\Framework\Message;
 use kjBot\Framework\Event\MessageEvent;
-use kjBot\Framework\DataStorage;
+use kjBotModule\kj415j45\CoreModule\Access;
+use kjBotModule\kj415j45\CoreModule\AccessLevel;
 
 class Search extends Module{
-    public function process(array $args, MessageEvent $event): Message
-    {
+    public function process(array $args, MessageEvent $event): Message{
+        if(!(Access::Control($event))->hasLevel(AccessLevel::Supporter))
+        return $event->sendBack('该功能暂时仅对 Supporter 用户开放');
+
         $index = 1;
         $page = 1;
         $word = '';
@@ -72,6 +75,8 @@ class Search extends Module{
 {$pixiv->illustComment}
 [CQ:image,file={$pixiv->urls->regular}]
 EOT;
+        Access::Log($this, $event, "Result: {$pixiv->illustId}, Using keywords: {$word}");
+        Access::LogForMe($this, "Result: {$pixiv->illustId}, Using keywords: {$word}");
         return $event->sendBack($msg);
     }
 }
