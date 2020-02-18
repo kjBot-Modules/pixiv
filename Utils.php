@@ -17,11 +17,11 @@ class Utils{
         $web = file_get_contents('https://www.pixiv.net/member_illust.php?mode=medium&illust_id='.$iID, false, stream_context_create(static::$pixivCookieHeader));
         if($web===false)q('无法打开 Pixiv');
     
-        if(!preg_match('/illust:\s?\{\s?'.$iID.':\s?(\{[\S\s]*\}\}\}) /', $web, $result)){
+        if(!preg_match('/"illust":([\S\s]*),"user"/', $web, $result)){
             q('没有这张插画');
         }
     
-        $pixiv = json_decode($result[1]);
+        $pixiv = json_decode(html_entity_decode($result[1]))->$iID;
         return $pixiv;
     }
     

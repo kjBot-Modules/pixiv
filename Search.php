@@ -28,44 +28,60 @@ class Search extends Module{
                     $mode = $args[$index++];
                     break;
                 case '-like':
-                    $word.= $args[$index++].urlencode('users入り ');
+                    $word.= $args[$index++].'users入り ';
                     break;
                 default:
-                    $word.= $arg??'';
+                    $word.= ($arg.' ');
             }
         }while($arg!==NULL);
+        
+        $word = trim($word);
 
         if($event->fromGroup())$mode = 'safe';
-        $webStr = 'https://www.pixiv.net/search.php?type=illust'
-            .'&p='.($page??q('请提供页码'))
+        //ajax接口对空格只接受%20而不接受+，故采用rawurlencode()
+        $webStr = 'https://www.pixiv.net/ajax/search/artworks/'
+            .((0===strlen($word))?q('请提供关键词'):rawurlencode($word)).'?order=date_d&s_mode=s_tag&type=all&word='.rawurlencode($word) //s_mode设定为标签模糊搜索
+            .'&p='.(int)($page??q('请提供页码'))
             .'&mode='.strtolower($mode)
-            .'&word='.($word??q('请提供关键词'))
         ;
 
         Utils::Init(\Config('pixivCookie'));
 
-        $web = file_get_contents($webStr, false, stream_context_create(Utils::$pixivCookieHeader));
-        if($web===false)q('无法打开 Pixiv');
+        $json = file_get_contents($webStr, false, stream_context_create(Utils::$pixivCookieHeader));
+        if($json===false)q('无法打开 Pixiv');
 
-        preg_match('/data-items="([^"]*)"/', $web, $match);
-        preg_match('/<span class="count-badge">(\d+)件/', $web, $count);
-
-        $json = html_entity_decode($match[1]);
-        if($json == '[]' || $json == '')q('没有结果');
         $result = json_decode($json);
+        $illustManga = $result->body->illustManga;
+        if($illustManga->total === 0) q('没有结果');
+        $total = $illustManga->total;
+        
+        $data = $illustManga->data;
+        $pendingData1 = $result->body->popular->recent;
+        $pendingData2 = $result->body->popular->permanent;
 
-        if(isset($target) && 1<=$target && $target<=count($result)){
+        $pixiv = array_merge($data, $pendingData1, $pendingData2);
+
+        //随机时不包含私货数据
+        if(isset($target) && 1<=$target && $target<=count($pixiv)){
             $index = $target-1;
         }else{
-            $index = rand(0, count($result)-1);
+            $index = rand(0, count($data)-1);
+        }
+        if($index+1 > count($data)){
+            $_index = $index - count($data)+1;
+            $pendingTotal = count($pixiv) - count($data);
+            $indexText = "这是热门作品中的 {$_index}/{$pendingTotal}";
+        }else{
+            $_index = $index+1;
+            $indexText = "这是第 {$page} 页第 {$_index} 幅";
         }
 
-        $pixiv = $result[$index++];
+        $pixiv = $pixiv[$index++];
         $pixiv = Utils::GetIllustInfoByID($pixiv->illustId);
         $tags = Utils::GetIllustTagsFromPixivJSON($pixiv);
         $pixiv->illustComment = strip_tags(str_replace('<br />', "\n", $pixiv->illustComment));
         $msg=<<<EOT
-该关键字共有 {$count[1]} 幅作品，这是第 {$page} 页第 {$index} 幅
+该关键字共有 {$total} 幅作品，{$indexText}
 插画ID：{$pixiv->illustId} 共 {$pixiv->pageCount} P
 画师ID：{$pixiv->userId}
 标签：{$tags}
