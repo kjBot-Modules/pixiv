@@ -1,16 +1,32 @@
 <?php
 namespace kjBotModule\kj415j45\pixiv;
 
+use Exception;
 use kjBot\Framework\Module;
 use kjBot\Framework\Message;
 use kjBot\Framework\Event\MessageEvent;
 use kjBotModule\kj415j45\CoreModule\Access;
 use kjBotModule\kj415j45\CoreModule\AccessLevel;
+use kjBotModule\kj415j45\CoreModule\Economy;
 
 class Search extends Module{
+    const USER_COST = 4;
+    const SUPPORTER_COST = 3;
+
     public function process(array $args, MessageEvent $event): Message{
-        if(!(Access::Control($event))->hasLevel(AccessLevel::Supporter))
-        return $event->sendBack('该功能暂时仅对 Supporter 用户开放');
+        $ac = Access::Control($event);
+        $cost = static::USER_COST;
+        if(!$ac->hasLevel(AccessLevel::Developer)){
+            $userEconomy = new Economy($event->getId());
+            try{
+                $cost = $ac->hasLevel(AccessLevel::Supporter)?static::SUPPORTER_COST:static::USER_COST;
+                $userEconomy->decBalance($cost);
+            }catch(Exception $e){
+                if($e->getCode() == Economy::NO_MONEY){
+                    return $event->sendBack(Economy::STR_NO_MONEY_HINT);
+                }
+            }
+        }
 
         $index = 1;
         $page = 1;
