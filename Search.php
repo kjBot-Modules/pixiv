@@ -2,12 +2,14 @@
 namespace kjBotModule\kj415j45\pixiv;
 
 use Exception;
+use kjBot\SDK\CQCode;
 use kjBot\Framework\Module;
 use kjBot\Framework\Message;
+use kjBot\Framework\DataStorage;
 use kjBot\Framework\Event\MessageEvent;
 use kjBotModule\kj415j45\CoreModule\Access;
-use kjBotModule\kj415j45\CoreModule\AccessLevel;
 use kjBotModule\kj415j45\CoreModule\Economy;
+use kjBotModule\kj415j45\CoreModule\AccessLevel;
 
 class Search extends Module{
     const USER_COST = 4;
@@ -93,23 +95,25 @@ class Search extends Module{
         }
 
         $pixiv = $pixiv[$index++];
-        $pixiv = Utils::GetIllustInfoByID($pixiv->illustId);
+        $pixiv = Utils::GetIllustInfoByID($pixiv->id);
         $tags = Utils::GetIllustTagsFromPixivJSON($pixiv);
         $pixiv->illustComment = strip_tags(str_replace('<br />', "\n", $pixiv->illustComment));
+        $filename = basename(parse_url($pixiv->urls->regular)['path']);
+        DataStorage::SetData("pixiv/{$filename}", Utils::FetchImage($pixiv->urls->regular), false, false);
         $msg=<<<EOT
 该关键字共有 {$total} 幅作品，{$indexText}
-插画ID：{$pixiv->illustId} 共 {$pixiv->pageCount} P
+插画ID：{$pixiv->id} 共 {$pixiv->pageCount} P
 画师ID：{$pixiv->userId}
 标签：{$tags}
 收藏：{$pixiv->bookmarkCount} 喜欢：{$pixiv->likeCount} 浏览：{$pixiv->viewCount}
 
 {$pixiv->illustTitle}
 {$pixiv->illustComment}
-[CQ:image,file={$pixiv->urls->regular}]
 EOT;
-        Access::Log($this, $event, "Result: {$pixiv->illustId}, Keywords: {$word}");
+        $msg .= sendImg(DataStorage::GetData("pixiv/{$filename}"));
+        Access::Log($this, $event, "Result: {$pixiv->id}, Keywords: {$word}");
         $user = $event->getId();
-        Access::LogForMe($this, "User: {$user}, Result: {$pixiv->illustId}, Keywords: {$word}");
+        Access::LogForMe($this, "User: {$user}, Result: {$pixiv->id}, Keywords: {$word}");
         return $event->sendBack($msg);
     }
 }

@@ -8,7 +8,8 @@ class Utils{
     public static function Init($cookie = NULL){
         static::$pixivCookieHeader = [
             "http" => [
-                "header" => 'cookie: '.$cookie??\Config('pixivCookie')."\n"
+                "header" => "user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)\n".
+                            'cookie: '.$cookie??\Config('pixivCookie')."\n"
             ]
         ];
     }
@@ -34,5 +35,11 @@ class Utils{
         return rtrim($tagString);
     }
     
-    
+    public static function FetchImage($link){
+        return file_get_contents($link, false, stream_context_create([
+            'http' => [
+                'header' => 'referer: https://pixiv.net'
+            ]
+        ]));
+    }
 }
